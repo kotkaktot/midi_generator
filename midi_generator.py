@@ -30,7 +30,7 @@ def corona_notes_list(octave):
     return midi
 
 
-def midi_generate(midi, tempo, octave):
+def midi_generate(midi, tempo, octave, name='corona'):
     degrees = midi  # MIDI note number
     track = 0
     channel = 0
@@ -47,7 +47,7 @@ def midi_generate(midi, tempo, octave):
 
     # print("corona_{}_{}.mid".format(tempo, octave))
 
-    with open("corona_{}_{}.mid".format(tempo, octave), "wb") as output_file:
+    with open("{}_{}_{}.mid".format(name, tempo, octave), "wb") as output_file:
         MyMIDI.writeFile(output_file)
 
 
@@ -60,11 +60,36 @@ def corona_midi(update, context):
     os.system('timidity corona_{}_{}.mid -Ow -o - |'
               ' ffmpeg -i - -acodec libmp3lame -ab 64k corona_{}_{}.mp3'.format(tempo, octave, tempo, octave))
 
-    time.sleep(5)
     context.bot.send_audio(chat_id=update.effective_chat.id,
                            audio=open('corona_{}_{}.mp3'.format(tempo, octave), 'rb'))
 
 
+def text_to_midi(update, context):
+    msg = update.message.text.split('*')
+    tempo = msg[0].split(' ')[1]
+    text = msg[1]
+    midi_list = []
+    for symb in text:
+        if ord(symb) > 1000:
+            midi_list.append(ord(symb)-1000)
+        else:
+            midi_list.append(ord(symb))
+
+    # print(midi_list)
+    midi_generate(midi_list, tempo, 'x', name='text')
+
+    file_name = 'text_{}_x.mp3'.format(tempo, tempo)
+
+    if os.path.isfile(file_name):
+        os.remove(file_name)
+    os.system('timidity {}.mid -Ow -o - |'
+              ' ffmpeg -i - -acodec libmp3lame -ab 64k {}'.format(file_name.split('.')[0], file_name))
+
+    context.bot.send_audio(chat_id=update.effective_chat.id,
+                           audio=open(file_name, 'rb'))
+
+
+updater.dispatcher.add_handler(CommandHandler('text', text_to_midi))
 updater.dispatcher.add_handler(CommandHandler('corona', corona_midi))
 updater.start_polling()
 updater.idle()
