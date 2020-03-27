@@ -92,12 +92,11 @@ def text_to_midi(update, context):
 
 def aphorismes(update, context):
     from bs4 import BeautifulSoup
-    from settings import url_aphorisme
     import requests
 
     aph_file = 'aphorisme_tts.mp3'
 
-    url = url_aphorisme
+    url = 'http://www.aphorisme.ru/random/?q=2329'
     html = requests.get(url)
 
     soup = BeautifulSoup(html.content, features="html.parser")
