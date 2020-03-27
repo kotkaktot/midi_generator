@@ -1,6 +1,7 @@
 from midiutil import MIDIFile
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from settings import token
+from gtts import gTTS
 import os
 import time
 
@@ -89,6 +90,49 @@ def text_to_midi(update, context):
                            audio=open(file_name, 'rb'))
 
 
+def aphorismes(update, context):
+    from bs4 import BeautifulSoup
+    from settings import url_aphorisme
+    import requests
+
+    aph_file = 'aphorisme_tts.mp3'
+
+    url = url_aphorisme
+    html = requests.get(url)
+
+    soup = BeautifulSoup(html.content, features="html.parser")
+
+    aph_text = soup.find('div', attrs={'class': 'rendom_aph'}).text
+
+    # print(aph_text)
+
+    generate_mp3_from_text(aph_text, aph_file)
+
+    context.bot.send_audio(chat_id=update.effective_chat.id,
+                           audio=open(aph_file, 'rb'))
+
+
+def generate_mp3_from_text(text, filename):
+    tts = gTTS(text,
+               lang='ru')
+
+    tts.save(filename)
+
+
+def brat_mp3(update, context):
+    import random
+    with open('brat.txt') as f:
+        phrases = f.read().splitlines()
+    ind = random.randrange(0, len(phrases)-1)
+
+    generate_mp3_from_text(phrases[ind], 'brat_wisdom.mp3')
+
+    context.bot.send_audio(chat_id=update.effective_chat.id,
+                           audio=open('brat_wisdom.mp3', 'rb'))
+
+
+updater.dispatcher.add_handler(CommandHandler('brat', brat_mp3))
+updater.dispatcher.add_handler(CommandHandler('wisdom', aphorismes))
 updater.dispatcher.add_handler(CommandHandler('text', text_to_midi))
 updater.dispatcher.add_handler(CommandHandler('corona', corona_midi))
 updater.start_polling()
