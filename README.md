@@ -1,7 +1,5 @@
 # midi_generator
-Its next revision of my easy 8bit generator.
-
-I applyed this code for my fun telegram-bot.
+Its next revision of my easy 8bit generator. I applyed this code for my fun telegram-bot.
 
 It can synthesize speech from text of messages.
 
